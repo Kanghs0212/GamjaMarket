@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="/style.css" rel="stylesheet">
+</head>
+<body class="grey-bg">
+    <%- include('nav.ejs') %>
+    <div class="detail-bg">
+        <a href="/chat/add?id=<%= data['_id']%>&user=<%= data['user']%>">채팅하기</a>
+        <h4><%= data['title']%></h4>
+        <p><%= data['content']%></p>
+        <img src="<%= data['img']%>" style="height: 400px;">
+        
+    </div>
+    
+    <h1 style="margin-left: 20px;">댓글창</h1>
+    <form class ="form-box" action="/add/comment?id=<%= data['_id']%>" method="POST">
+        <input name="comment" style="width: 80%; height: 60px;">
+        <button type="submit">입력</button>
+    </form>
+    <div>
+        <% for(let i=0; i< comment.length; i++){ %>
+            <div class="list-box white-bg">
+                <p><%= i+1%> 유저: <%= comment[i]['username']%></p>
+                <h4><%= comment[i]['text']%></h4>
+            </div>  
+         <% } %>
+
+    </div>
+</body>
+</html>

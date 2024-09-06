@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="/style.css" rel="stylesheet">
+</head>
+<body class="grey-bg">
+  <%- include('nav.ejs') %>
+
+  <div style="width: 70%; margin: auto;">
+
+      <h1>채팅방</h1>
+      <div class="detail-bg">
+          <div class="chat-screen">
+              <% for(let i = 0; i < texts.length; i++){ %>
+                <% if(texts[i]['writer_id'].equals(mine)) {%>
+                  <div class="chat-box mine"><span><%=texts[i]['text']%></span></div>
+                <% } else {%>
+                  <div class="chat-box"><span><%=texts[i]['text']%></span></div>
+                <% }%>
+              <% }%>
+          </div>
+        </div>
+      
+      <div class="chat-form">
+          <input class="chat-input" name="input">
+          <button class="chat-button">전송</button>
+      </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.2/client-dist/socket.io.min.js"></script>
+  <script>
+    const socket = io() 
+    let roomNum = '<%= roomNum%>'
+    socket.emit('ask-join',{roomNum: roomNum, id: '<%= mine%>'})
+
+    document.querySelector('.chat-button').addEventListener('click', ()=>{
+      let text = document.querySelector('.chat-input').value
+      socket.emit('message', {msg: text, room : roomNum})
+    })
+
+    document.querySelector('.chat-input').addEventListener('keydown', (e)=>{
+      if(e.key=='Enter'){
+        let text = document.querySelector('.chat-input').value
+        socket.emit('message', {msg: text, room : roomNum})
+      }
+    })
+
+    socket.on('broadcast', (data)=>{
+      if('<%= mine%>'==data.id){
+        document.querySelector('.chat-screen').insertAdjacentHTML('beforeend',
+        `<div class="chat-box mine"><span>`+data.msg+`</span></div>`)
+      }
+      else{
+        document.querySelector('.chat-screen').insertAdjacentHTML('beforeend',
+        `<div class="chat-box"><span>`+data.msg+`</span></div>`)   
+      }
+      document.querySelector('.chat-input').value = '';
+    })
+
+  </script>
+</body>
+</html>

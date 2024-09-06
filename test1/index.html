@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="/css/style.css" rel="stylesheet">
+
+</head>
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<body>
+    
+    
+    <div class="background">
+        <div class="dark-background">
+            <div class="info p-5">
+                <h4 class="fs-5 fw-bold mb-1">성함</h4>
+                <input type="text" id="name">
+                <h4 class="fs-5 fw-bold mt-2 mb-1">연락처</h4>
+                <input type="tel" id="phone">
+                <div class="btns mt-3">
+                    <button class="buy-fin btn btn-dark">입력완료</button>
+                    <button class="buy-close btn btn-dark">닫기</button>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">집꾸미기</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">스토어</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">시공견적</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container mt-3">
+            <input type="search" placeholder="검색어입력" id="search" onchange="inputdata()">
+            
+            <div class="upper-row row mt-4">
+                
+                <!--
+                <div class="col-md-3">
+                    <div class="card p-3 pb-0 border-white">
+                        <img src="pr1.JPG">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-1">식기세척기</h5>
+                            <p class="mb-1">세척나라</p>
+                            <h4 class="mb-3 fs-5">가격 : 10000</h4>
+                            
+                            <button class="btn btn-dark">담기</button>
+                        </div>
+                    </div>
+                </div>
+                -->
+                   
+            </div>
+        </div>
+        
+        <div class="cart container mt-4 p-3">
+            <h1 class="fs-5 fw-bold mt-4">장바구니</h1>
+            
+            <div id="div1" class="black-cart" >
+                <h1 class="cart-text">여기로 드래그</h1>
+                <div class="area row row-lower p-3" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    
+                </div>
+                
+            </div>
+            <div>
+                <h1 class="total fw-bold fs-5 m-2">총 가격: 0원</h1>
+                <button class="buy btn btn-dark">구매하기 </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tax">
+        <button class="tax-btn"></button>
+        <canvas id="canvas" width="450" height="400"></canvas>
+        <div class="tax-bottom">
+            <div style="border-top: 1px solid rgb(220,220,220); width: 95%; margin-left: auto; margin-right: auto;"></div>
+            <button class="tax-close">닫기</button>
+        </div>
+    </div>
+    
+
+    
+    <script>
+        localStorage.clear();
+        
+       
+        var arr; // store.json을 불러와 저장할 객체
+        
+        function 돈계산(){
+            var money=0;
+            for(let i = 0; i<arr.length; i++){
+                if(localStorage.getItem('drag'+i)!=null){
+                    money += localStorage.getItem('drag'+i) * arr[i]['price'];
+                }
+            }
+            return money;
+        }
+      
+        $.get("/json/store.json")
+        .done(function(data){
+           arr = data['products'];
+            arr.forEach((a,i)=>{
+                $('.upper-row').append(`
+                <div id="drag${i}" class="col-md-3 ms-auto me-auto" draggable="true" ondragstart="drag(event)">
+                    <div class="card p-3 pb-0 border-white" >
+                        <img src="/img/`+a['photo']+`" draggable="false">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-1">`+a['title']+`</h5>
+                            <p class="mb-1">`+a['brand']+`</p>
+                            <h4 class="mb-3 fs-5">가격 : `+a['price']+`</h4>
+                            
+                            <button class="getCart btn btn-dark" data-index="`+i+`">담기</button>
+                        </div>
+                    </div>
+                </div>
+                `);
+            });
+        });
+        
+        function inputdata(){
+            var input = $('#search').val();
+            
+            var newArr = arr.filter(function(a){
+                return a['title'].includes(input); 
+            });
+                
+                $('.upper-row').html('');
+            
+                newArr.forEach((a,i)=>{
+                    tmp= a['title'].replace(input, '<span style="background : yellow">'+input+'</span>');
+                    $('.upper-row').append(`
+                    <div id="drag${i}" class="col-md-3 ms-auto me-auto" draggable="true" ondragstart="drag(event)">
+                        <div class="card p-3 pb-0 border-white">
+                            <img src="/img/`+a['photo']+`" draggable="false">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-1">`+tmp+`</h5>
+                                <p class="mb-1">`+a['brand']+`</p>
+                                <h4 class="mb-3 fs-5">가격 : `+a['price']+`</h4>
+
+                                <button class="getCart btn btn-dark" data-index="`+i+`">담기</button>
+                            </div>
+                        </div>
+                    </div>
+                    `);
+                });
+        }
+        
+        function inputTotal(i){
+            var input = $('#total_input'+i).val();
+            
+            localStorage.setItem('drag'+i, input);
+            var money = 돈계산();
+            $('.total').html('총 가격: '+money+'원');
+        }
+        
+        var flag = false;
+   
+            
+        $(document).on('click','.getCart', function(){
+            if(!flag){
+                $('.cart-text').html('');
+                flag=true;
+            }
+            var i = $(this).data('index');
+            var a = arr[i];
+            var data = 'drag'+i;
+            
+            if(localStorage.getItem(data)==null){
+            localStorage.setItem(data, 1);
+
+            $('.row-lower').append(`
+            <div class="col-md-3  ms-auto me-auto" draggable="false" style="max-width: 25%">
+                <div class="card p-3 pb-0 border-white">
+                    <img src="/img/`+a['photo']+`" draggable="false">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-1">`+a['title']+`</h5>
+                        <p class="mb-1">`+a['brand']+`</p>
+                        <h4 class="mb-3 fs-5">가격 : `+a['price']+`</h4>
+                        
+                        <div class="count`+i+`">
+                            <input onchange="inputTotal(`+i+`)" id="total_input`+i+`" value="`+localStorage.getItem(data)+`" style="width:60%;" data-index="`+i+`">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `);
+            }
+            else{
+                var tmp = localStorage.getItem(data);
+                tmp++;
+                localStorage.setItem(data, tmp);
+                $('.count'+i).html(`<input onchange="inputTotal(`+i+`)" id="total_input`+i+`" value="`+localStorage.getItem(data)+`" style="width:60%;" data-index="`+i+`">`);
+            }
+            
+            // 총 가격 계산
+            var money = 돈계산();
+            $('.total').html('총 가격: '+money+'원');
+        })
+        
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+        
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            if(!flag){
+                $('.cart-text').html('');
+                flag=true;
+            }
+            
+            var data = ev.dataTransfer.getData("text");
+            
+            var i = $('#'+data+' .getCart').data('index');
+            var a = arr[i];
+            
+            if(localStorage.getItem(data)==null){
+                localStorage.setItem(data, 1);
+
+                if('drag'+i == data){
+                $('.row-lower').append(`
+                <div id="drag${i}" class="col-md-3 ms-auto me-auto" draggable="false" ondragstart="drag(event)">
+                    <div class="card p-3 pb-0 border-white">
+                        <img src="/img/`+a['photo']+`" draggable="false">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-1">`+a['title']+`</h5>
+                            <p class="mb-1">`+a['brand']+`</p>
+                            <h4 class="mb-3 fs-5">가격 : `+a['price']+`</h4>
+                            <div class="count`+i+`">
+                                <input onchange="inputTotal(`+i+`)" id="total_input`+i+`" value="`+localStorage.getItem(data)+`" style="width:60%;" data-index="`+i+`">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `);
+                }
+
+                $('.upper-row').html('');
+                
+                arr.forEach((a,i)=>{
+                $('.upper-row').append(`
+                <div id="drag${i}" class="col-md-3 ms-auto me-auto" draggable="true" ondragstart="drag(event)">
+                    <div class="card p-3 pb-0 border-white">
+                        <img src="/img/`+a['photo']+`" draggable="false">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-1">`+a['title']+`</h5>
+                            <p class="mb-1">`+a['brand']+`</p>
+                            <h4 class="mb-3 fs-5">가격 : `+a['price']+`</h4>
+
+                            <button class="getCart btn btn-dark" data-index="`+i+`">담기</button>
+                        </div>
+                    </div>
+                </div>
+                `);
+                });
+                
+                
+            }
+            else{
+                var tmp = localStorage.getItem(data);
+                tmp++;
+                localStorage.setItem(data, tmp);
+                $('.count'+i).html(`<input onchange="inputTotal(`+i+`)" id="total_input`+i+`" value="`+localStorage.getItem(data)+`" style="width:60%;" data-index="`+i+`">`);
+            }
+            
+            // 총 가격 계산
+            var money = 돈계산();
+            $('.total').html('총 가격: '+money+'원');
+            
+        }
+        
+        $('.buy').click(function(){
+            $('.dark-background').addClass('show');
+        });
+        
+        $('.buy-close').click(function(){
+            $('.dark-background').removeClass('show');
+        });
+        
+    
+        
+        $('.tax-close').click(function(){
+            $('.tax').removeClass('show');
+            window.location.reload();
+        });
+        
+        $('.buy-fin').click(function(e){
+            var name = $('#name').val();
+            var phone = $('#phone').val();
+            
+            if(name == ''){
+                e.preventDefault();
+                alert('이름을 입력하세요');
+            } 
+            else if(phone == ''){
+                e.preventDefault();
+                alert('전화번호를 입력하세요');
+            }
+            else{
+                var canvas = document.getElementById('canvas');
+                var c = canvas.getContext('2d');
+                var jumpCnt=0;
+                var totalMoney = 0;
+                
+                c.font = 'bold 16px nanumsquare';
+                c.fillText('영수증', 30, 70);
+
+                c.fillStyle = "rgb(200,200,200)";
+                c.fillRect(3, 3, 444, 40);
+
+                c.fillStyle = "rgb(0,00,00)";
+                c.font = '12px nanumsquare';
+                c.fillText('2021-3-5 18:51:18', 30, 85);
+
+                for(let i = 0; i< arr.length; i++){ 
+                    if(localStorage.getItem('drag'+i)==null) 
+                        continue; 
+                    var jump = jumpCnt * 95;
+                    var ea = localStorage.getItem('drag'+i);
+                    jumpCnt++;
+                    c.fillText(arr[i]['title'], 30+jump, 110);
+                    c.fillText(arr[i]['brand'], 30+jump, 125);
+                    c.fillText('가격 : ' + arr[i]['price'], 30+jump, 140);
+                    c.fillText('수량 : ' + ea, 30+jump, 155);
+                    c.fillText('합계 : ' + ea*arr[i]['price'], 30+jump, 170);
+                    
+                    totalMoney+=ea*arr[i]['price'];
+                }
+                
+                c.font = 'bold 16px nanumsquare';
+                c.fillText('총 합계 : '+ totalMoney, 150, 300);
+        
+            
+                $('.dark-background').removeClass('show');
+                setTimeout(function(){
+                     $('.tax').addClass('show');
+                }, 500);
+                
+            }
+        });
+       
+        // canvas
+        
+        
+    </script>
+    
+    
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    
+</body>
+</html>
